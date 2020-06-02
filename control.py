@@ -1,5 +1,13 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+# rancorFANcontrol-PI
+#
+# A simple python script I wrote to enable the Pi to control your fan(s) based on the temp of the CPU
+#
+#
+# https://rancor.uk
+#
+#
 
 import RPi.GPIO as GPIO
 import time
@@ -39,9 +47,6 @@ try:
     with open(setup) as f:
         logging.warning('Script has been killed manually and re-run')
 except IOError:
-
-        # Do something with the file
-
     subprocess.check_output('echo "2">/sys/class/gpio/export',
                             shell=True)
     subprocess.check_output('echo "out">/sys/class/gpio/gpio2/direction'
