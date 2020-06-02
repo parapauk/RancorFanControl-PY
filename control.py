@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-# rancorFANcontrol-PI
+# rancorFANcontrolPI-PY
 #
 # A simple python script I wrote to enable the Pi to control your fan(s) based on the temp of the CPU
 #
