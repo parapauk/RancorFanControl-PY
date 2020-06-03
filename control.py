@@ -59,7 +59,7 @@ log = '/fan/log/log.log'
 ###
 # ULTRA AGGRESIVE
 ###
-#temp = '35'
+#temp = '40'
 
 ###
 # AGGRESIVE
@@ -97,6 +97,7 @@ tries = 3
 ###
 multi = 100 / (int(tries) + 2)
 i = 0
+off = 0
 try:
     while True:
         currentTemp = \
@@ -128,6 +129,7 @@ try:
                 logging.debug('Fan turned on ' + str(int(currentTemp)))
                 i = int(i) - 1
         else:
+            #time.sleep(int(tries) * 5)
             targetFile.write('0')
             targetFile.close()
             fanStatus.write('off|' + str(int(currentTemp)))
