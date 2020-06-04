@@ -68,7 +68,7 @@ try:
         currentTemp = \
             subprocess.check_output('vcgencmd measure_temp | cut -c6,7'
                                     , shell=True)
-        logging.debug('Iteration: ' + str(int(i)) + ' - Temp: ' + str(int(currentTemp)) + ' - Aiming for ' + str(int(temp)) + ' - Currently: ' + str(status))
+        logging.debug('Iteration: ' + str(int(i)) + ' - Temp: ' + str(int(currentTemp)) + ' - Aiming for ' + str(int(temp)) + ' - Currently: ' + str(status) + ' - Off Counter: ' + str(int(off)))
         targetFilePath = '/sys/class/gpio/gpio2/value'
         targetFile = open(targetFilePath, 'w')
         fanStatusFile = 'status'
@@ -76,6 +76,7 @@ try:
         brightness.start(0)
         brightnessLevel = 0
         if int(currentTemp) >= int(temp):
+            off = 0
             i += 1
             if i > 1:
                 brightnessLevel = (int(i) - 1) * int(multi)
@@ -110,8 +111,9 @@ try:
                     off = 0
                     status = 'off'
             else:
-                logging.debug('Fan not on and temperature has dropped. Iteration: ' + str(int(i)) + ' - Restting back to 0 runs')
+                logging.debug('Fan not on and temperature has dropped. Iteration: ' + str(int(i)) + ' - Resetting back to 0 runs - ' + str(int(off)))
                 i = 0
+                off = 0
         time.sleep(5)
 except KeyboardInterrupt:
     GPIO.cleanup()
