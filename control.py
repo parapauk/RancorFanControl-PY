@@ -10,6 +10,7 @@
 #
 
 import RPi.GPIO as GPIO
+from gpiozero import PWMLED
 import time
 import subprocess
 import logging
@@ -32,17 +33,17 @@ status = 'off'
 targetFilePath = '/sys/class/gpio/gpio2/value'
 fan = 2
 led = 16
+newLed = PWMLED(16)
 
 
 
 
+#GPIO.setmode(GPIO.BCM)
+#GPIO.setwarnings(False)
+#GPIO.setup(led, GPIO.OUT)
 
-GPIO.setmode(GPIO.BCM)
-GPIO.setwarnings(False)
-GPIO.setup(led, GPIO.OUT)
-
-brightness = GPIO.PWM(led, 100)
-brightness.start(0)
+#brightness = GPIO.PWM(led, 100)
+#brightness.start(0)
 setup = '/sys/class/gpio/gpio2/direction'
 try:
     with open(setup) as f:
@@ -74,12 +75,13 @@ try:
             off = 0
             i += 1
             if i > 1:
-                brightnessLevel = (int(i) - 1) * int(multi)
+                brightnessLevel = ((int(i) - 1) * int(multi) / 100)
             else:
                 brightnessLevel = 0
             if int(brightnessLevel) > 99:
                 brightnessLevel = 99
-            brightness.ChangeDutyCycle(brightnessLevel)
+            #brightness.ChangeDutyCycle(brightnessLevel)
+            newLed.value = brightnessLevel
             logging.debug('Temp exceeded ' + str(int(currentTemp)) + ' - aiming for ' + str(int(temp)))
             if i > tries:
                 if status == 'off':
@@ -88,8 +90,9 @@ try:
                     targetFile.close()
                     fanStatus.write('on|' + str(int(currentTemp)))
                     fanStatus.close()
-                    brightness.ChangeDutyCycle(100)
                     #brightness.ChangeDutyCycle(100)
+                    #brightness.ChangeDutyCycle(100)
+                    newLed.on()
                     logging.debug('Fan TURNED ON ' + str(int(currentTemp)) + ' - aiming for ' + str(int(temp)))
                 else:
                     logging.debug('Fan ALREADY ON ' + str(int(currentTemp)) + ' - aiming for ' + str(int(temp)))
@@ -97,25 +100,32 @@ try:
         else:
             if status == 'on':
                 off += 1
-                if off >= tries:
+                if off >= (tries - 1):
                     #time.sleep(int(tries) * 5)
+                    newLed.pulse()
                     targetFile.write('0')
                     targetFile.close()
                     fanStatus.write('off|' + str(int(currentTemp)))
                     fanStatus.close()
                     #GPIO.output(16, GPIO.LOW)
-                    brightness.ChangeDutyCycle(0)
+                    #brightness.ChangeDutyCycle(0)
+                    time.sleep(2)
+                    newLed.off()
                     logging.debug('Fan TURNED OFF ' + str(int(currentTemp)) + ' - aiming for ' + str(int(temp)))
                     off = 0
                     status = 'off'
                     i = 0
                 else:
+                    #brightnessLevel = ((int(tries) - off) / 100)
+                    #newLed.value = brightnessLevel
                     logging.debug('Preparing to TURN OFF. ' + str(int(currentTemp)) + ' - aiming for ' + str(int(temp)))
                     i = int(i) - 1
             else:
                 logging.debug('Nothing to do. Iteration: ' + str(int(currentTemp)) + ' - aiming for ' + str(int(temp)))
                 off = 0
-                if i > 0:
+                if i == 0:
+                    i = 0
+                else:
                     i = int(i) - 1
         time.sleep(5)
 except KeyboardInterrupt:
