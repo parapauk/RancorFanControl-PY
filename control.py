@@ -9,41 +9,44 @@
 #
 #
 
-import RPi.GPIO as GPIO
 from gpiozero import PWMLED
-import time
-import subprocess
-import logging
-import os
+import time, subprocess, logging, os, threading
+from datetime import datetime
 from pathlib import Path
 logging.basicConfig(filename='/fan/fan.log', level=logging.DEBUG, format='%(asctime)s %(levelname)-8s %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S')
 
-
-log = '/fan/log/log.log'
+# csv location
+csv = '/fan/temps.csv'
 # target temp
 temp = 46
 # how many breaches of the temp before turning fan on? (higher = longer)
-tries = 5
+tries = 12
+# multiplier to compensate for minor temp adjustments
 temp = int(temp) * 0.935
-multi = 100 / (int(tries) + 2)
+# fan gpio number (un-used)
+fan = 2
+# led gpio number (un-used)
+led = 16
+# led gpio number
+newLed = PWMLED(16)
+
+
+######################################
+# DONT EDIT BELOW HERE!!
+######################################
+
+multi = 100 / (int(tries))
 i = 0
 off = 0
 status = 'off'
 targetFilePath = '/sys/class/gpio/gpio2/value'
-fan = 2
-led = 16
-newLed = PWMLED(16)
+
+def blinkenLighten():
+    newLed.pulse()
+    time.sleep(20)
 
 
-
-
-#GPIO.setmode(GPIO.BCM)
-#GPIO.setwarnings(False)
-#GPIO.setup(led, GPIO.OUT)
-
-#brightness = GPIO.PWM(led, 100)
-#brightness.start(0)
 setup = '/sys/class/gpio/gpio2/direction'
 try:
     with open(setup) as f:
@@ -65,24 +68,27 @@ try:
         currentTemp = \
             subprocess.check_output('vcgencmd measure_temp | cut -c6,7'
                                     , shell=True)
+        tempLog = open(csv,"a")
+        tempLog.write(str(datetime.now()) + ',' + str(int(currentTemp)) + ',' + str(int(temp)) + ',' + str(status) + ',' + str(int(tries)) + '\n')
+        tempLog.close()
         logging.debug('Iteration: ' + str(int(i)) + ' - Temp: ' + str(int(currentTemp)) + ' - Aiming for ' + str(int(temp)) + ' - Currently: ' + str(status) + ' - Off Counter: ' + str(int(off)))
         targetFilePath = '/sys/class/gpio/gpio2/value'
         targetFile = open(targetFilePath, 'w')
         fanStatusFile = 'status'
         fanStatus = open(fanStatusFile, 'w')
         #brightnessLevel = 0
-        if int(currentTemp) >= int(temp):
+        if int(currentTemp) > int(temp):
             off = 0
             i += 1
             if i > 1:
                 brightnessLevel = ((int(i) - 1) * int(multi) / 100)
             else:
                 brightnessLevel = 0
-            if int(brightnessLevel) > 99:
-                brightnessLevel = 99
-            #brightness.ChangeDutyCycle(brightnessLevel)
+            if int(brightnessLevel) > 1:
+                brightnessLevel = 1
+            #print(brightnessLevel)
             newLed.value = brightnessLevel
-            logging.debug('Temp exceeded ' + str(int(currentTemp)) + ' - aiming for ' + str(int(temp)))
+            logging.debug('Temp exceeded ' + str(int(currentTemp)) + ' - aiming for ' + str(int(temp)) + ' - Brightness: ' + str(int(brightnessLevel)))
             if i > tries:
                 if status == 'off':
                     status = 'on'
@@ -92,7 +98,9 @@ try:
                     fanStatus.close()
                     #brightness.ChangeDutyCycle(100)
                     #brightness.ChangeDutyCycle(100)
-                    newLed.on()
+                    #newLed.on()
+                    thread = threading.Thread(target=blinkenLighten)
+                    thread.start()
                     logging.debug('Fan TURNED ON ' + str(int(currentTemp)) + ' - aiming for ' + str(int(temp)))
                 else:
                     logging.debug('Fan ALREADY ON ' + str(int(currentTemp)) + ' - aiming for ' + str(int(temp)))
@@ -100,7 +108,7 @@ try:
         else:
             if status == 'on':
                 off += 1
-                if off >= (tries - 1):
+                if off > (tries):
                     #time.sleep(int(tries) * 5)
                     newLed.pulse()
                     targetFile.write('0')
@@ -119,11 +127,14 @@ try:
                     #brightnessLevel = ((int(tries) - off) / 100)
                     #newLed.value = brightnessLevel
                     logging.debug('Preparing to TURN OFF. ' + str(int(currentTemp)) + ' - aiming for ' + str(int(temp)))
-                    i = int(i) - 1
+                    if int < 1:
+                        int = 0
+                    else:
+                        i = int(i) - 1
             else:
                 logging.debug('Nothing to do. Iteration: ' + str(int(currentTemp)) + ' - aiming for ' + str(int(temp)))
                 off = 0
-                if i == 0:
+                if i < 1:
                     i = 0
                 else:
                     i = int(i) - 1
