@@ -1,3 +1,4 @@
 .gitignore
 fan.log
 status
+__pycache__

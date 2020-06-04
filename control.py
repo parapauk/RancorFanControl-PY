@@ -10,9 +10,12 @@
 #
 
 from gpiozero import PWMLED
+import RPi.GPIO as GPIO
+
 import time, subprocess, logging, os, threading
 from datetime import datetime
 from pathlib import Path
+from rgb import rgb
 logging.basicConfig(filename='/fan/fan.log', level=logging.DEBUG, format='%(asctime)s %(levelname)-8s %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S')
 
@@ -21,7 +24,7 @@ csv = '/fan/temps.csv'
 # target temp
 temp = 46
 # how many breaches of the temp before turning fan on? (higher = longer)
-tries = 12
+tries = 3
 # multiplier to compensate for minor temp adjustments
 temp = int(temp) * 0.935
 # fan gpio number (un-used)
@@ -35,6 +38,8 @@ newLed = PWMLED(16)
 ######################################
 # DONT EDIT BELOW HERE!!
 ######################################
+thread = threading.Thread(target=rgb)
+thread.start()
 
 multi = 100 / (int(tries))
 i = 0
@@ -117,7 +122,6 @@ try:
                     fanStatus.close()
                     #GPIO.output(16, GPIO.LOW)
                     #brightness.ChangeDutyCycle(0)
-                    time.sleep(2)
                     newLed.off()
                     logging.debug('Fan TURNED OFF ' + str(int(currentTemp)) + ' - aiming for ' + str(int(temp)))
                     off = 0
