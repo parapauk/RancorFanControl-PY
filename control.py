@@ -62,7 +62,7 @@ targetFilePath = '/sys/class/gpio/gpio2/value'
 targetFile = open(targetFilePath, 'w')
 targetFile.write('0')
 targetFile.close()
-
+thread = threading.Thread(target=blinkenLighten)
 try:
     while True:
         currentTemp = \
@@ -127,8 +127,8 @@ try:
                     #brightnessLevel = ((int(tries) - off) / 100)
                     #newLed.value = brightnessLevel
                     logging.debug('Preparing to TURN OFF. ' + str(int(currentTemp)) + ' - aiming for ' + str(int(temp)))
-                    if int < 1:
-                        int = 0
+                    if i < 1:
+                        i = 0
                     else:
                         i = int(i) - 1
             else:
