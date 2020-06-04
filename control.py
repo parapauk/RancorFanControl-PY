@@ -54,47 +54,11 @@ except IOError:
     logging.info('Script has been ran from cron automatically')
 
 log = '/fan/log/log.log'
-###
-# Choose which fan preset
-###
-# ULTRA AGGRESIVE
-###
-#temp = '40'
-
-###
-# AGGRESIVE
-###
-temp = '45'
-
-###
-# RELAXED
-###
-#temp = '55'
-
-###
-# QUIET
-###
-#temp = '65'
-###
-###
-# How quickly should it kick in? - The more tries, the longer the cpu has to remain at the target temp for the fans to kick in
-###
-# Immediately
-###
-#tries = 1
-###
-# Short
-###
-tries = 3
-###
-# Long
-###
-#tries = 7
-###
-# Very Long
-###
-#tries = 12
-###
+# target temp
+temp = 51
+# how many breaches of the temp before turning fan on? (higher = longer)
+tries = 5
+temp = int(temp) * 0.9
 multi = 100 / (int(tries) + 2)
 i = 0
 off = 0
