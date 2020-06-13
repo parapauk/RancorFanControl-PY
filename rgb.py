@@ -8,15 +8,15 @@ import colorsys
 RUNNING = True
 GPIO.setmode(GPIO.BCM)
     #GPIO.setwarnings(False)
-red = 20
-green = 21
+red = 17
+green = 27
 blue = 22
 
 GPIO.setup(red, GPIO.OUT)
 GPIO.setup(green, GPIO.OUT)
 GPIO.setup(blue, GPIO.OUT)
 
-Freq = 100
+Freq = 80
 
 RED = GPIO.PWM(red, Freq)
 RED.start(100)
@@ -25,19 +25,20 @@ GREEN.start(100)
 BLUE = GPIO.PWM(blue, Freq)
 BLUE.start(100)
 
-outval = 128
-wait = 0.07
+outval = 255
+wait = 0.03
 
 def rgb(): 
     
     
     def wheel_color(position):
+        print(position)
         """Get color from wheel value (0 - 384)."""
     
         if position < 0:
             position = 0
-        if position > 384:
-            position = 384
+        if position > 383:
+            position = 383
     
         if position < 128:
             r = 127 - position % 128
@@ -57,7 +58,7 @@ def rgb():
     
     try:
         while True:
-            for pos in range(0, 385):
+            for pos in range(0, 383):
                 (r, g, b) = wheel_color(pos)
                 percenttestr = r / 128.0 * 100.0
                 percenttestg = g / 128.0 * 100.0
