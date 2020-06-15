@@ -32,7 +32,7 @@ def rgb():
     
     
     def wheel_color(position):
-        print(position)
+        #print(position)
         """Get color from wheel value (0 - 384)."""
     
         if position < 0:
